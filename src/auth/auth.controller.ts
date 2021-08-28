@@ -3,15 +3,19 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UserDto } from './dtos/user.dto';
 import { Serialize } from './interceptor/serialize.interceptor';
+import { UsersService } from './users.service';
 
 @Controller('auth')
 @Serialize(UserDto)
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private usersService: UsersService,
+    private authService: AuthService,
+  ) {}
 
   @Post('register')
   register(@Body() body: CreateUserDto) {
-    return this.authService.create(body);
+    return this.usersService.create(body);
   }
 
   @Post('login')
@@ -21,6 +25,6 @@ export class AuthController {
 
   @Get(':id')
   findUser(@Param('id') id: string) {
-    return this.authService.find(parseInt(id));
+    return this.usersService.findOne(parseInt(id));
   }
 }
