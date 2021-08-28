@@ -1,8 +1,11 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dtos/create-user.dto';
+import { UserDto } from './dtos/user.dto';
+import { Serialize } from './interceptor/serialize.interceptor';
 
 @Controller('auth')
+@Serialize(UserDto)
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -13,6 +16,11 @@ export class AuthController {
 
   @Post('login')
   login() {
-    return this.authService.findUser();
+    return 'Log in';
+  }
+
+  @Get(':id')
+  findUser(@Param('id') id: string) {
+    return this.authService.find(parseInt(id));
   }
 }

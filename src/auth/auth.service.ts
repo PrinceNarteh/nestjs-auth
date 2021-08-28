@@ -16,7 +16,8 @@ export class AuthService {
     return this.authRepository.save(user);
   }
 
-  findUser() {
-    return 'Returned User';
+  find(id: number) {
+    const user = this.authRepository.findOneOrFail(id);
+    return user;
   }
 }

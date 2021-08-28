@@ -5,5 +5,8 @@ Content-Type: application/json
     "firstName": "John",
     "lastName": "Doe",
     "email":"john.doe@email.com",
-    "password": "secret",
+    "password": "secret"
 }
+
+### Find Single User
+GET http://localhost:4000/auth/1 HTTP/1.1
