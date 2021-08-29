@@ -3,6 +3,7 @@ import { CreateUserDto } from './dtos/create-user.dto';
 import { UsersService } from './users.service';
 import { randomBytes, scrypt as _scrypt } from 'crypto';
 import { promisify } from 'util';
+import { LoginDto } from './dtos/login.dto';
 
 const scrypt = promisify(_scrypt);
 
@@ -37,5 +38,19 @@ export class AuthService {
     return user;
   }
 
-  login() {}
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
+    const [user] = await this.usersService.find({ email });
+    if (!user) {
+      throw new BadRequestException('Invalid Credentials');
+    }
+
+    const [storedHash, salt] = user.password.split('.');
+    const hash = (await scrypt(password, salt, 32)) as Buffer;
+    if (storedHash !== hash.toString('hex')) {
+      throw new BadRequestException('Invalid Credential');
+    }
+
+    return user;
+  }
 }

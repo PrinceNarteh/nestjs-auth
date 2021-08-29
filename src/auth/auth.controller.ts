@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dtos/create-user.dto';
+import { LoginDto } from './dtos/login.dto';
 import { UserDto } from './dtos/user.dto';
 import { Serialize } from './interceptor/serialize.interceptor';
 import { UsersService } from './users.service';
@@ -19,8 +20,8 @@ export class AuthController {
   }
 
   @Post('login')
-  login() {
-    return 'Log in';
+  login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
   }
 
   @Get(':id')
