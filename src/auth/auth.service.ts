@@ -26,6 +26,15 @@ export class AuthService {
 
     //3. Join the hashed password and the salt together
     const hashedPassword = hash.toString('hex') + '.' + salt;
+
+    // Create a new user and save it
+    const user = await this.usersService.create({
+      ...createUserDto,
+      password: hashedPassword,
+    });
+
+    // return the user
+    return user;
   }
 
   login() {}
