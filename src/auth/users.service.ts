@@ -14,14 +14,16 @@ export class UsersService {
     return this.authRepository.save(user);
   }
 
-  findOne(id: number) {
+  findById(id: number) {
     const user = this.authRepository.findOneOrFail(id);
     return user;
   }
 
-  find() {
-    const users = this.authRepository.find();
-    return users;
+  find(filter: { [key: string]: string } = {}) {
+    if (Object.keys(filter).length > 0) {
+      return this.authRepository.find(filter);
+    }
+    return this.authRepository.find();
   }
 
   update(id: number, body: Partial<CreateUserDto>) {}

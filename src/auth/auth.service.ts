@@ -1,10 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
-import { User } from './user.entity';
+import { UsersService } from './users.service';
 
 @Injectable()
 export class AuthService {
-  constructor() {}
+  constructor(private usersService: UsersService) {}
+
+  async register(createUserDto: CreateUserDto) {
+    const { email, password } = createUserDto;
+    const users = await this.usersService.find({ email });
+    if (users.length) {
+      throw new BadRequestException('Email already in use.');
+    }
+  }
+
+  login() {}
 }

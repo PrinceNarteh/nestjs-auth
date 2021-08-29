@@ -25,6 +25,6 @@ export class AuthController {
 
   @Get(':id')
   findUser(@Param('id') id: string) {
-    return this.usersService.findOne(parseInt(id));
+    return this.usersService.findById(parseInt(id));
   }
 }
