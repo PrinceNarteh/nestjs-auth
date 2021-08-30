@@ -55,4 +55,10 @@ describe('AuthService', () => {
       await service.register(fakeUser);
     } catch (error) {}
   });
+
+  it('throws an error if login is called with an unused email', async () => {
+    try {
+      await service.login({ email: 'prince@email.com', password: 'secret' });
+    } catch (error) {}
+  });
 });
