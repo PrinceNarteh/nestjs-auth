@@ -28,6 +28,16 @@ export class AuthController {
     return user;
   }
 
+  @Get('whoami')
+  getUser(@Session() session: any) {
+    return this.usersService.findById(session.userId);
+  }
+
+  @Post('logout')
+  logOut(@Session() session: any) {
+    session.userId = null;
+  }
+
   @Get(':id')
   findUser(@Param('id') id: string) {
     return this.usersService.findById(parseInt(id));

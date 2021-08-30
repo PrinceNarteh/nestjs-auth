@@ -14,8 +14,11 @@ export class UsersService {
     return this.authRepository.save(user);
   }
 
-  findById(id: number) {
-    const user = this.authRepository.findOneOrFail(id);
+  async findById(id: number) {
+    if (!id) {
+      return null;
+    }
+    const user = await this.authRepository.findOneOrFail(id);
     return user;
   }
 
