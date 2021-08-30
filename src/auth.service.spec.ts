@@ -24,10 +24,24 @@ describe('AuthService', () => {
       ],
     }).compile();
 
-    service = module.get(AuthService);
+    service = module.get<AuthService>(AuthService);
   });
 
   it('can create an instance of auth service', async () => {
     expect(service).toBeDefined();
+  });
+
+  it('creates a new user with a salted and hashed password', async () => {
+    const user = await service.register({
+      firstName: 'Jane',
+      lastName: 'Smith',
+      email: 'jane.smith@email.com',
+      password: 'password',
+    });
+
+    expect(user.password).not.toEqual('password');
+    const [hash, salt] = user.password.split('.');
+    expect(hash).toBeDefined();
+    expect(salt).toBeDefined();
   });
 });
