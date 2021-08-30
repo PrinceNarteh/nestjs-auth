@@ -1,9 +1,11 @@
 import { Body, Controller, Get, Param, Post, Session } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { CurrentUser } from './decorators/current-user.decorator';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { LoginDto } from './dtos/login.dto';
 import { UserDto } from './dtos/user.dto';
 import { Serialize } from './interceptor/serialize.interceptor';
+import { User } from './user.entity';
 import { UsersService } from './users.service';
 
 @Controller('auth')
@@ -29,8 +31,8 @@ export class AuthController {
   }
 
   @Get('whoami')
-  getUser(@Session() session: any) {
-    return this.usersService.findById(session.userId);
+  whoAmI(@CurrentUser() user: User) {
+    return user;
   }
 
   @Post('logout')
