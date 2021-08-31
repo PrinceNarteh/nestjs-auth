@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -58,5 +59,10 @@ export class AuthController {
   @Get()
   getAllUsers() {
     return this.usersService.find();
+  }
+
+  @Delete(':id')
+  deleteUser(@Param('id') id: string) {
+    return this.usersService.remove(parseInt(id));
   }
 }

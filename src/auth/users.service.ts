@@ -30,5 +30,9 @@ export class UsersService {
   }
 
   update(id: number, body: Partial<CreateUserDto>) {}
-  remove(id: number) {}
+
+  async remove(id: number) {
+    const user = await this.findById(id);
+    await this.authRepository.remove(user);
+  }
 }

@@ -8,11 +8,12 @@ describe('AuthService', () => {
   let service: AuthService;
   let fakeUsersService: Partial<UsersService>;
   let fakeUser: User = {
-    id: 1,
+    id: 2,
     firstName: 'Jane',
-    lastName: 'Smith',
-    email: 'jane.smith@email.com',
-    password: 'password',
+    lastName: 'Doe',
+    email: 'jane.doe@email.com',
+    password:
+      '59f12cc2ac9633132d4603c8d4caadc61efe67a33d1b88e5e405e451ca2f8ccb.381acd69bf0f23eb',
   };
 
   beforeEach(async () => {
@@ -59,6 +60,31 @@ describe('AuthService', () => {
   it('throws an error if login is called with an unused email', async () => {
     try {
       await service.login({ email: 'prince@email.com', password: 'secret' });
-    } catch (error) {}
+    } catch (error) {
+      expect(error.message).toBe('Invalid Credentials');
+    }
+  });
+
+  it('throws an error if an invalid password is provided', async () => {
+    fakeUsersService.find = () => Promise.resolve([fakeUser]);
+    try {
+      await service.login({
+        email: 'jane.smith@email.com',
+        password: 'pass',
+      });
+    } catch (err) {
+      expect(err.message).toBe('Invalid Credentials');
+    }
+  });
+
+  it('returns a user if correct password is provided', async () => {
+    fakeUsersService.find = () => Promise.resolve([fakeUser]);
+
+    const user = await service.login({
+      email: 'jane.doe@email.com',
+      password: 'password',
+    });
+
+    expect(user).toBeDefined();
   });
 });
