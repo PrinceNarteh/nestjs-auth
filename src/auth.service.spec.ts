@@ -18,7 +18,7 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     fakeUsersService = {
-      find: () => Promise.resolve([]),
+      find: jest.fn().mockResolvedValue([]),
       create: (body: CreateUserDto) =>
         Promise.resolve({ id: 1, ...body } as User),
     };
@@ -50,7 +50,7 @@ describe('AuthService', () => {
   });
 
   it('throws an error if user signs up with email that is in use', async () => {
-    fakeUsersService.find = () => Promise.resolve([fakeUser]);
+    fakeUsersService.find = jest.fn().mockResolvedValue([fakeUser]);
 
     try {
       await service.register(fakeUser);
@@ -66,7 +66,7 @@ describe('AuthService', () => {
   });
 
   it('throws an error if an invalid password is provided', async () => {
-    fakeUsersService.find = () => Promise.resolve([fakeUser]);
+    fakeUsersService.find = jest.fn().mockResolvedValue([fakeUser]);
     try {
       await service.login({
         email: 'jane.smith@email.com',
@@ -78,7 +78,7 @@ describe('AuthService', () => {
   });
 
   it('returns a user if correct password is provided', async () => {
-    fakeUsersService.find = () => Promise.resolve([fakeUser]);
+    fakeUsersService.find = jest.fn().mockResolvedValue([fakeUser]);
 
     const user = await service.login({
       email: 'jane.doe@email.com',
