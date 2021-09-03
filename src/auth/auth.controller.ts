@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Session,
   UseGuards,
@@ -59,6 +60,11 @@ export class AuthController {
   @Get()
   getAllUsers() {
     return this.usersService.find();
+  }
+
+  @Patch(':id')
+  updateUser(@Param('id') id: string, @Body() body: Partial<CreateUserDto>) {
+    return this.usersService.update(+id, body);
   }
 
   @Delete(':id')

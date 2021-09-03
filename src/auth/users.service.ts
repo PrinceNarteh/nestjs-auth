@@ -29,7 +29,16 @@ export class UsersService {
     return this.authRepository.find();
   }
 
-  update(id: number, body: Partial<CreateUserDto>) {}
+  async update(id: number, body: Partial<CreateUserDto>) {
+    let user = await this.findById(id);
+    user = Object.assign(user, body);
+    try {
+      user = await this.authRepository.save(user);
+    } catch (error) {
+      console.log(error);
+    }
+    return user;
+  }
 
   async remove(id: number) {
     const user = await this.findById(id);
