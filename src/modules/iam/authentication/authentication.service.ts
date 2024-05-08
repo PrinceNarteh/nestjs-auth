@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -10,13 +11,19 @@ import { User } from 'users/entities/user.entity';
 import { HashingService } from 'iam/hashing/hashing.service';
 import constants from 'utils/constants';
 import { SignInDto } from './dto/sign-in.dto';
+import jwtConfig from 'iam/config/jwt.config';
+import { ConfigType } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthenticationService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @Inject(jwtConfig.KEY)
+    private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
     private readonly hashingService: HashingService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signUp(dto: SignUpDto) {
@@ -45,7 +52,19 @@ export class AuthenticationService {
       ) {
         throw new UnauthorizedException('Invalid Credentials');
       }
-      return user;
+      const accessToken = await this.jwtService.signAsync(
+        {
+          sub: user.id,
+          email: user.email,
+        },
+        {
+          issuer: this.jwtConfiguration.issuer,
+          audience: this.jwtConfiguration.audience,
+          secret: this.jwtConfiguration.secret,
+          expiresIn: this.jwtConfiguration.accessTokenTtl,
+        },
+      );
+      return { accessToken };
     } catch (error) {
       throw error;
     }
