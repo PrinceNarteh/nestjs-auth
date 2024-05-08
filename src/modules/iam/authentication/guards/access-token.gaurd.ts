@@ -12,7 +12,7 @@ import jwtConfig from 'iam/config/jwt.config';
 import { REQUEST_USER_KEY } from 'iam/iam.constant';
 
 @Injectable()
-export class AccessTokenGaurd implements CanActivate {
+export class AccessTokenGuard implements CanActivate {
   constructor(
     @Inject(jwtConfig.KEY)
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
