@@ -14,6 +14,7 @@ import { SignInDto } from './dto/sign-in.dto';
 import jwtConfig from 'iam/config/jwt.config';
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { ActiveUserData } from 'iam/interfaces/active-user-data.interface';
 
 @Injectable()
 export class AuthenticationService {
@@ -56,7 +57,7 @@ export class AuthenticationService {
         {
           sub: user.id,
           email: user.email,
-        },
+        } as ActiveUserData,
         {
           issuer: this.jwtConfiguration.issuer,
           audience: this.jwtConfiguration.audience,
