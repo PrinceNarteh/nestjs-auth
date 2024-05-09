@@ -1,6 +1,7 @@
 import { AbstractEntity } from 'database/entities/abstract.entity';
 import { Permission, PermissionType } from 'iam/authorization/permission.type';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinTable, OneToMany } from 'typeorm';
+import { ApiKey } from 'users/api-keys/entities/api-key.entity';
 import { Role } from 'users/enum/role.enum';
 
 @Entity()
@@ -22,4 +23,8 @@ export class User extends AbstractEntity {
 
   @Column({ enum: Permission, default: [], type: 'json' })
   permissions: PermissionType[];
+
+  @JoinTable()
+  @OneToMany((type) => ApiKey, (apiKey) => apiKey.user)
+  apiKeys: ApiKey[];
 }
