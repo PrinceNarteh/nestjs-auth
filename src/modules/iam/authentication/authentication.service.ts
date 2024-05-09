@@ -16,7 +16,10 @@ import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ActiveUserData } from 'iam/interfaces/active-user-data.interface';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { RefreshTokenIdsStorage } from './refresh-token-ids.storage';
+import {
+  InvalidRefreshTokenError,
+  RefreshTokenIdsStorage,
+} from './refresh-token-ids.storage';
 import { randomUUID } from 'crypto';
 
 @Injectable()
@@ -83,6 +86,9 @@ export class AuthenticationService {
       }
       return this.generateTokens(user);
     } catch (error) {
+      if (error instanceof InvalidRefreshTokenError) {
+        throw new UnauthorizedException('Access Denied');
+      }
       throw new UnauthorizedException();
     }
   }
