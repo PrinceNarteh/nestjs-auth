@@ -11,7 +11,8 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthenticationGuard } from './authentication/guards/authentication.guard';
 import { AccessTokenGuard } from './authentication/guards/access-token.gaurd';
-import { RolesGuard } from './authorization/guards/roles.guards';
+import { RolesGuard } from './authorization/guards/roles.guard';
+import { RefreshTokenIdsStorage } from './authentication/refresh-token-ids.storage';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { RolesGuard } from './authorization/guards/roles.guards';
     },
     AccessTokenGuard,
     AuthenticationService,
+    RefreshTokenIdsStorage,
   ],
   controllers: [AuthenticationController],
 })
