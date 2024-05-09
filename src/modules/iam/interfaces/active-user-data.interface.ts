@@ -1,3 +1,4 @@
+import { PermissionType } from 'iam/authorization/permission.type';
 import { Role } from 'users/enum/role.enum';
 
 export interface ActiveUserData {
@@ -16,4 +17,9 @@ export interface ActiveUserData {
    * The subject's (user) role
    */
   role: Role;
+
+  /**
+   * The subject's (user) permissions
+   */
+  permissions: PermissionType[];
 }

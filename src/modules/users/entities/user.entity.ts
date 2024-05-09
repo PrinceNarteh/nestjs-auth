@@ -1,4 +1,5 @@
 import { AbstractEntity } from 'database/entities/abstract.entity';
+import { Permission, PermissionType } from 'iam/authorization/permission.type';
 import { Column, Entity } from 'typeorm';
 import { Role } from 'users/enum/role.enum';
 
@@ -18,4 +19,7 @@ export class User extends AbstractEntity {
 
   @Column({ enum: Role, default: Role.Regular })
   role: Role;
+
+  @Column({ enum: Permission, default: [], type: 'json' })
+  permissions: PermissionType[];
 }
