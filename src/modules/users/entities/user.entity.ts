@@ -25,6 +25,6 @@ export class User extends AbstractEntity {
   permissions: PermissionType[];
 
   @JoinTable()
-  @OneToMany((type) => ApiKey, (apiKey) => apiKey.user)
+  @OneToMany(() => ApiKey, (apiKey) => apiKey.user)
   apiKeys: ApiKey[];
 }
