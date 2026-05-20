@@ -1,14 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { DRIZZLE } from 'src/database/database.module';
-import { Schema } from 'src/database/schemas';
+import { DRIZZLE } from '../database/database.module';
 import { CreateUser, users } from 'src/database/schemas/user.schema';
+import { type DrizzleDB } from 'src/database/types/drizzle';
 
 @Injectable()
 export class UsersService {
   constructor(
     @Inject(DRIZZLE)
-    private readonly db: NodePgDatabase<Schema>,
+    private readonly db: DrizzleDB,
   ) {}
 
   getUser() {
