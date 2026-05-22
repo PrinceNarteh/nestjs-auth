@@ -3,9 +3,12 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from './email.service';
 import { RegisterDTO } from './dto/register.dto';
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
+import { LoginDTO } from './dto/login.dto';
+import { Response } from 'express';
+import { User } from 'src/database/schemas';
 
 export class AuthService {
   constructor(
@@ -44,5 +47,66 @@ export class AuthService {
     };
   }
 
-  async login() {}
+  async login(dto: LoginDTO, res: Response) {
+    const user = await this.userService.findByEmail(dto.email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const passowrdMatch = await bcrypt.compare(dto.password, user.passwordHash);
+    if (!passowrdMatch) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    if (!user.isVerified) {
+      throw new UnauthorizedException(
+        'Please verify your email before logging in',
+      );
+    }
+
+    const tokens = await this.generateToken(user);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
+    this.setRefreshTokenCookie(res, tokens.refreshToken);
+
+    return {
+      accessToken: tokens.accessToken,
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+      },
+    };
+  }
+
+  private async generateToken(user: User) {
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: this.configService.getOrThrow('JWT_ACCESS_SECRET'),
+      expiresIn: this.configService.getOrThrow('JWT_ACCESS_EXPIRES_IN'),
+    });
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
+      expiresIn: this.configService.getOrThrow('JWT_REFRESH_EXPIRES_IN'),
+    });
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  private async saveRefreshToken(userId: string, refreshToken: string) {
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+    this.userService.update(userId, { refreshTokenHash });
+  }
+
+  private async setRefreshTokenCookie(res: Response, refreshToken: string) {
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+  }
 }
