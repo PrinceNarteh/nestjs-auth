@@ -12,10 +12,10 @@ import { User } from 'src/database/schemas';
 
 export class AuthService {
   constructor(
-    private userService: UsersService,
-    private jwtService: JwtService,
     private configService: ConfigService,
     private emailService: EmailService,
+    private jwtService: JwtService,
+    private userService: UsersService,
   ) {}
 
   async register(dto: RegisterDTO) {
@@ -66,7 +66,7 @@ export class AuthService {
 
     const tokens = await this.generateToken(user);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
-    this.setRefreshTokenCookie(res, tokens.refreshToken);
+    this.setRefreshTokenCookie(tokens.refreshToken, res);
 
     return {
       accessToken: tokens.accessToken,
@@ -77,6 +77,50 @@ export class AuthService {
         email: user.email,
         role: user.role,
       },
+    };
+  }
+
+  async refresh(refreshToken: string, res: Response) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token provided');
+    }
+
+    let payload: { sub: string; email: string };
+    try {
+      payload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+      });
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
+
+    const user = await this.userService.findById(payload.sub);
+    if (!user || !user.refreshTokenHash) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const tokenMatch = await bcrypt.compare(
+      refreshToken,
+      user.refreshTokenHash,
+    );
+    if (!tokenMatch) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const tokens = await this.generateToken(user);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
+    this.setRefreshTokenCookie(tokens.refreshToken, res);
+
+    return {
+      accessToken: tokens.accessToken,
+    };
+  }
+
+  async logout(userId: string, res: Response) {
+    await this.userService.update(userId, { refreshTokenHash: null });
+    res.clearCookie('refresh_token');
+    return {
+      message: 'Logged out successfully',
     };
   }
 
@@ -101,7 +145,7 @@ export class AuthService {
     this.userService.update(userId, { refreshTokenHash });
   }
 
-  private async setRefreshTokenCookie(res: Response, refreshToken: string) {
+  private async setRefreshTokenCookie(refreshToken: string, res: Response) {
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
