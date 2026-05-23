@@ -13,6 +13,7 @@ import * as crypto from 'crypto';
 import { LoginDTO } from './dto/login.dto';
 import { Response } from 'express';
 import { User } from 'src/database/schemas';
+import { JwtPayload } from 'src/common/types';
 
 export class AuthService {
   constructor(
@@ -122,7 +123,7 @@ export class AuthService {
       throw new UnauthorizedException('No refresh token provided');
     }
 
-    let payload: { sub: string; email: string };
+    let payload: JwtPayload;
     try {
       payload = await this.jwtService.verifyAsync(refreshToken, {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
@@ -160,7 +161,11 @@ export class AuthService {
   }
 
   private async generateToken(user: User) {
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.getOrThrow('JWT_ACCESS_SECRET'),
       expiresIn: this.configService.getOrThrow('JWT_ACCESS_EXPIRES_IN'),
