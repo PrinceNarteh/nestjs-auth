@@ -102,6 +102,19 @@ export class AuthService {
       verificationToken: null,
       verificationTokenExpiresAt: null,
     });
+
+    const tokens = await this.generateAndSaveTokens(user, res);
+    return {
+      message: 'Email verified successfully. You are now logged in.',
+      accessToken: tokens.accessToken,
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+      },
+    };
   }
 
   async refresh(refreshToken: string, res: Response) {
