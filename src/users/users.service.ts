@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DRIZZLE } from '../database/database.module';
-import { CreateUser, users } from 'src/database/schemas/user.schema';
+import { CreateUser, User, users } from 'src/database/schemas/user.schema';
 import { type DrizzleDB } from 'src/database/types/drizzle';
 import { eq } from 'drizzle-orm';
 
@@ -11,19 +11,25 @@ export class UsersService {
     private readonly db: DrizzleDB,
   ) {}
 
-  async findAll() {
+  async findAll(): Promise<User[]> {
     return this.db.query.users.findMany();
   }
 
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<User | undefined> {
     return this.db.query.users.findFirst({
       where: eq(users.email, email),
     });
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<User | undefined> {
     return this.db.query.users.findFirst({
       where: eq(users.id, id),
+    });
+  }
+
+  async findByVerificationToken(token: string): Promise<User | undefined> {
+    return this.db.query.users.findFirst({
+      where: eq(users.refreshTokenHash, token),
     });
   }
 

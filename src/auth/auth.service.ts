@@ -3,7 +3,11 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from './email.service';
 import { RegisterDTO } from './dto/register.dto';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import { LoginDTO } from './dto/login.dto';
@@ -64,9 +68,7 @@ export class AuthService {
       );
     }
 
-    const tokens = await this.generateToken(user);
-    await this.saveRefreshToken(user.id, tokens.refreshToken);
-    this.setRefreshTokenCookie(tokens.refreshToken, res);
+    const tokens = await this.generateAndSaveTokens(user, res);
 
     return {
       accessToken: tokens.accessToken,
@@ -78,6 +80,28 @@ export class AuthService {
         role: user.role,
       },
     };
+  }
+
+  async verifyEmail(token: string, res: Response) {
+    const user = await this.userService.findByVerificationToken(token);
+    if (!user || !user.verificationToken) {
+      throw new BadRequestException('Invalid verification token');
+    }
+
+    if (
+      user.verificationTokenExpiresAt &&
+      user.verificationTokenExpiresAt < new Date()
+    ) {
+      throw new BadRequestException(
+        'Verification token expired. Please request a new token',
+      );
+    }
+
+    await this.userService.update(user.id, {
+      isVerified: true,
+      verificationToken: null,
+      verificationTokenExpiresAt: null,
+    });
   }
 
   async refresh(refreshToken: string, res: Response) {
@@ -107,9 +131,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const tokens = await this.generateToken(user);
-    await this.saveRefreshToken(user.id, tokens.refreshToken);
-    this.setRefreshTokenCookie(tokens.refreshToken, res);
+    const tokens = await this.generateAndSaveTokens(user, res);
 
     return {
       accessToken: tokens.accessToken,
@@ -152,5 +174,12 @@ export class AuthService {
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+  }
+
+  private async generateAndSaveTokens(user: User, res: Response) {
+    const tokens = await this.generateToken(user);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
+    this.setRefreshTokenCookie(tokens.refreshToken, res);
+    return tokens;
   }
 }
