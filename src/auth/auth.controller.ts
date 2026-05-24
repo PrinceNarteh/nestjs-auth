@@ -20,8 +20,11 @@ import type { User } from 'src/database/schemas';
 import { LoginDTO } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { RegisterDTO } from './dto/register.dto';
+import { ForgotPasswordDTO } from './dto/forgot-password.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { ResetPasswordDTO } from './dto/reset-password.dto';
+import { type MessageResponse } from 'src/common/types';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -31,7 +34,7 @@ export class AuthController {
   @Public()
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
-  async register(@Body() data: RegisterDTO) {
+  async register(@Body() data: RegisterDTO): MessageResponse {
     return this.authService.register(data);
   }
 
@@ -64,7 +67,7 @@ export class AuthController {
   async refresh(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-  ) {
+  ): Promise<{ accessToken: string }> {
     const refreshToken = req.cookies?.refresh_token;
     return this.authService.refresh(refreshToken, res);
   }
@@ -91,7 +94,22 @@ export class AuthController {
   async logout(
     @CurrentUser() user: User,
     @Res({ passthrough: true }) res: Response,
-  ) {
+  ): MessageResponse {
     return this.authService.logout(user.id, res);
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Request a password reset' })
+  async forgetPassword(@Body() dto: ForgotPasswordDTO): MessageResponse {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset password using token from email' })
+  async resetPassword(@Body() dto: ResetPasswordDTO): MessageResponse {
+    return this.authService.resetPassword(dto.email, dto.password);
   }
 }

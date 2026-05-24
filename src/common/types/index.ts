@@ -10,3 +10,7 @@ export type JwtPayload = {
   email: string;
   role: string;
 };
+
+export type MessageResponse = Promise<{
+  message: string;
+}>;
