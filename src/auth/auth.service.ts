@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
@@ -9,22 +10,23 @@ import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { LoginDTO } from './dto/login.dto';
+import { EmailService } from './email.service';
+import { RegisterDTO } from './dto/register.dto';
 import { User } from 'src/database/schemas';
 import { JwtPayload } from 'src/common/types';
 import { UsersService } from 'src/users/users.service';
-import { EmailService } from './email.service';
-import { RegisterDTO } from './dto/register.dto';
 
+@Injectable()
 export class AuthService {
   constructor(
-    private readonly configService: ConfigService,
-    private readonly emailService: EmailService,
-    private readonly jwtService: JwtService,
-    private readonly userService: UsersService,
+    private configService: ConfigService,
+    private emailService: EmailService,
+    private jwtService: JwtService,
+    private usersService: UsersService,
   ) {}
 
   async register(dto: RegisterDTO) {
-    const userExists = await this.userService.findByEmail(dto.email);
+    const userExists = await this.usersService.findByEmail(dto.email);
     if (userExists) {
       throw new ConflictException('An account with this email already exists');
     }
@@ -35,7 +37,7 @@ export class AuthService {
       Date.now() + 20 * 60 * 60 * 1000,
     );
 
-    const user = await this.userService.create({
+    const user = await this.usersService.create({
       firstName: dto.firstName,
       lastName: dto.lastName,
       email: dto.email,
@@ -53,7 +55,7 @@ export class AuthService {
   }
 
   async login(dto: LoginDTO, res: Response) {
-    const user = await this.userService.findByEmail(dto.email);
+    const user = await this.usersService.findByEmail(dto.email);
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -84,7 +86,7 @@ export class AuthService {
   }
 
   async verifyEmail(token: string, res: Response) {
-    const user = await this.userService.findByVerificationToken(token);
+    const user = await this.usersService.findByVerificationToken(token);
     if (!user || !user.verificationToken) {
       throw new BadRequestException('Invalid verification token');
     }
@@ -98,7 +100,7 @@ export class AuthService {
       );
     }
 
-    await this.userService.update(user.id, {
+    await this.usersService.update(user.id, {
       isVerified: true,
       verificationToken: null,
       verificationTokenExpiresAt: null,
@@ -132,7 +134,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired token');
     }
 
-    const user = await this.userService.findById(payload.sub);
+    const user = await this.usersService.findById(payload.sub);
     if (!user || !user.refreshTokenHash) {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -153,7 +155,7 @@ export class AuthService {
   }
 
   async logout(userId: string, res: Response) {
-    await this.userService.update(userId, { refreshTokenHash: null });
+    await this.usersService.update(userId, { refreshTokenHash: null });
     res.clearCookie('refresh_token');
     return {
       message: 'Logged out successfully',
@@ -182,7 +184,7 @@ export class AuthService {
 
   private async saveRefreshToken(userId: string, refreshToken: string) {
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
-    this.userService.update(userId, { refreshTokenHash });
+    this.usersService.update(userId, { refreshTokenHash });
   }
 
   private async setRefreshTokenCookie(refreshToken: string, res: Response) {
