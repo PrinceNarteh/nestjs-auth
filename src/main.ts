@@ -19,11 +19,12 @@ async function bootstrap() {
       transform: true,
       whitelist: true,
       forbidNonWhitelisted: true,
+      stopAtFirstError: true,
     }),
   );
 
   // add exception handlers
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // app.useGlobalFilters(new HttpExceptionFilter());
 
   // setup Swagger
   const config = new DocumentBuilder()

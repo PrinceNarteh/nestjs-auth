@@ -1,8 +1,3 @@
-import { UsersService } from 'src/users/users.service';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { EmailService } from './email.service';
-import { RegisterDTO } from './dto/register.dto';
 import {
   BadRequestException,
   ConflictException,
@@ -10,21 +5,26 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
-import { LoginDTO } from './dto/login.dto';
 import { Response } from 'express';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { LoginDTO } from './dto/login.dto';
 import { User } from 'src/database/schemas';
 import { JwtPayload } from 'src/common/types';
+import { UsersService } from 'src/users/users.service';
+import { EmailService } from './email.service';
+import { RegisterDTO } from './dto/register.dto';
 
 export class AuthService {
   constructor(
-    private configService: ConfigService,
-    private emailService: EmailService,
-    private jwtService: JwtService,
-    private userService: UsersService,
+    private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
+    private readonly jwtService: JwtService,
+    private readonly userService: UsersService,
   ) {}
 
   async register(dto: RegisterDTO) {
-    const userExists = await this.userService.findById(dto.email);
+    const userExists = await this.userService.findByEmail(dto.email);
     if (userExists) {
       throw new ConflictException('An account with this email already exists');
     }

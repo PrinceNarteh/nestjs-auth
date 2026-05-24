@@ -9,9 +9,6 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { LoginDTO } from './dto/login.dto';
-import { RegisterDTO } from './dto/register.dto';
 import {
   ApiBearerAuth,
   ApiCookieAuth,
@@ -20,6 +17,9 @@ import {
 } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import type { User } from 'src/database/schemas';
+import { LoginDTO } from './dto/login.dto';
+import { AuthService } from './auth.service';
+import { RegisterDTO } from './dto/register.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
@@ -27,6 +27,13 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Public()
+  @Post('register')
+  @ApiOperation({ summary: 'Register a new user' })
+  async register(@Body() data: RegisterDTO) {
+    return this.authService.register(data);
+  }
 
   @Public()
   @Post('login')
@@ -37,13 +44,6 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.authService.login(dto, res);
-  }
-
-  @Public()
-  @Post('register')
-  @ApiOperation({ summary: 'Register a new user' })
-  async register(@Body() data: RegisterDTO) {
-    return this.authService.register(data);
   }
 
   @Public()
@@ -69,17 +69,6 @@ export class AuthController {
     return this.authService.refresh(refreshToken, res);
   }
 
-  @Post('logout')
-  @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Logs user out and invalidate refresh token' })
-  async logout(
-    @CurrentUser() user: User,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    return this.authService.logout(user.id, res);
-  }
-
   @Post('me')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
@@ -93,5 +82,16 @@ export class AuthController {
       role: user.role,
       isVerified: user.isVerified,
     };
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Logs user out and invalidate refresh token' })
+  async logout(
+    @CurrentUser() user: User,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.logout(user.id, res);
   }
 }
