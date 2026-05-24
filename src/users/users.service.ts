@@ -32,6 +32,12 @@ export class UsersService {
     });
   }
 
+  async findByResetToken(token: string): Promise<User | undefined> {
+    return this.db.query.users.findFirst({
+      where: eq(users.verificationToken, token),
+    });
+  }
+
   async findByVerificationToken(token: string): Promise<User | undefined> {
     return this.db.query.users.findFirst({
       where: eq(users.refreshTokenHash, token),

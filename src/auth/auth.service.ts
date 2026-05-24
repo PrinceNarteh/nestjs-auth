@@ -162,6 +162,54 @@ export class AuthService {
     };
   }
 
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      return {
+        message:
+          'If an account with this email exists, then a reset link has been sent to it.',
+      };
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    await this.usersService.update(user.id, {
+      resetToken,
+      resetTokenExpiresAt,
+    });
+
+    void this.emailService.sendResetPasswordEmail(email, resetToken);
+
+    return {
+      message:
+        'If an account with this email exists, then a reset link has been sent to it.',
+    };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const user = await this.usersService.findByResetToken(token);
+    if (!user || !user?.resetToken) {
+      throw new BadRequestException('Invalid reset token');
+    }
+
+    if (user.resetTokenExpiresAt && user.resetTokenExpiresAt < new Date()) {
+      throw new BadRequestException(
+        'Reset token expired. Please request a new token',
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await this.usersService.update(user.id, {
+      passwordHash,
+      resetToken: null,
+      resetTokenExpiresAt: null,
+    });
+
+    return {
+      message: 'Password reset successful. You can now log in.',
+    };
+  }
+
   private async generateToken(user: User) {
     const payload: JwtPayload = {
       sub: user.id,
