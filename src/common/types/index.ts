@@ -14,3 +14,6 @@ export type JwtPayload = {
 export type MessageResponse = Promise<{
   message: string;
 }>;
+
+export type Role = 'admin' | 'user';
+export const ROLES_KEY = Symbol('roles');

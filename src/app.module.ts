@@ -6,6 +6,7 @@ import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { RoleGuard } from './common/guards/roles.guard';
 
 @Module({
   imports: [
@@ -19,10 +20,8 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     AuthModule,
   ],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RoleGuard },
   ],
 })
 export class AppModule {}
