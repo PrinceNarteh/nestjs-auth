@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RoleGuard } from './common/guards/roles.guard';
 import { TasksModule } from './tasks/tasks.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TasksModule } from './tasks/tasks.module';
     UsersModule,
     AuthModule,
     TasksModule,
+    AdminModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
